@@ -51,30 +51,30 @@ const createTagPrompt = (content) => {
  ];
 };
 
-const generateTags = async (content) => {
-const tags = [];
-const messages = createTagPrompt(content);
-tags = messages.content.split(",")
-console.log("🚀 ~ generateTags ~ tags:", tags)
+export const generateTags = async (content) => {
+ const messages = createTagPrompt(content);
 
- 
- try {
-   const response = await openai.chat.completions.create({
-     model: "gpt-4o",
-     messages,
-     temperature: 1,
-     max_tokens: 4000,
-     top_p: 1,
-   });
-   console.log("🚀 ~ generateTags ~ response:", response)
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages,
+      temperature: 1,
+      max_tokens: 4000,
+      top_p: 1,
+    });
 
-   const data = [...messages, response.choices[0].message];
-   console.log("data", data);
-   return data;
- } catch (error) {
-   console.log(error);
-   throw error;
- }
+    // OpenAI 응답에서 태그 문자열 추출 (여기서 선언)
+    const tagString = response.choices[0].message.content.trim();
+
+    // 쉼표로 분리해 배열로 변환
+    const tags = tagString.split(",");
+
+    console.log("🚀 ~ generateTags ~ tags:", tags);
+    return tags;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
 const testContents = [
