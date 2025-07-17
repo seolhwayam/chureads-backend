@@ -1,27 +1,26 @@
 import express from "express";
 import { generateTags } from "../services/tagService.js";
 
-
-
-//게시물 관련 모든 API 엔드포인트를 관리하는 라우터
+// 게시물 관련 모든 API 엔드포인트를 관리하는 라우터
 const router = express.Router();
 
 let collection;
 
 export const init = (db) => {
-    collection = db.collection("posts");
-}
+  collection = db.collection("posts");
+};
 
-//GET /posts - 모든 게시물 조회
-router.get("/", async(req,res) => {
-    try {
-        const posts = await collection.find().toArray();
-        res.status(200).json({message : "GET요청 성공했습니다!"})
-        console.log("GET요청 성공")
-    } catch (error) {
-        console.log(`GET요청 error : ${error}`)
-    } 
-})
+// GET /posts - 모든 게시물 조회
+router.get("/", async (req, res) => {
+  try {
+    // DB에서 데이터 불러오기
+    const posts = await collection.find().toArray();
+    res.status(200).json(posts);
+    console.log("GET요청 성공");
+  } catch (error) {
+    console.log(`GET요청 에러: ${error}`);
+  }
+});
 
 // GET /posts/:id - 특정 게시물 조회
 router.get("/:id", async (req, res) => {
@@ -40,11 +39,11 @@ router.post("/", async (req, res) => {
   // 요청 body에서 게시물 데이터를 받아서 데이터베이스에 저장
   try {
     const post = req.body;
-    //get api 태그 생성
-    const tags = await generateTags(post.content);
-    console.log("🚀 ~ router.post ~ tags:", tags)
 
-    //데이터 추가
+    // GPT AI로 태그 생성
+    const tags = await generateTags(post.content);
+
+    // 데이터 추가
     const newItem = {
       ...post,
       likeCount: 0,
@@ -55,7 +54,7 @@ router.post("/", async (req, res) => {
     const result = await collection.insertOne(newItem);
 
     // TODO: 새 게시물 알림을 모든 클라이언트에게 전송
-     res.status(201).json({...result,tags});
+    res.status(201).json({ ...result, tags });
   } catch (error) {
     console.log(error);
   }
