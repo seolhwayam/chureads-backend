@@ -1,5 +1,6 @@
 import express from "express";
 import { generateTags } from "../services/tagService.js";
+import { ObjectId } from "mongodb";
 
 // 게시물 관련 모든 API 엔드포인트를 관리하는 라우터
 const router = express.Router();
