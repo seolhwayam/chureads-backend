@@ -52,8 +52,6 @@ export const handleSSEConnection = (req, res) => {
   });
 };
 
-
-
 // 모든 클라이언트에게 이벤트 전송하는 범용 함수
 export const broadcastToClients = (eventType, data) => {
   console.log("⭐️이벤트 실행");

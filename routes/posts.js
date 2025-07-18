@@ -1,25 +1,24 @@
-import express from "express";
+import express from "express"
 import { generateTags } from "../services/tagService.js";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb"
+import { broadcastToClients } from "../sse/sseManager.js";
 
-// 게시물 관련 모든 API 엔드포인트를 관리하는 라우터
+//게시물 관련 모든 API의 엔드포인트를 관리하는 라우터
 const router = express.Router();
 
 let collection;
 
 export const init = (db) => {
   collection = db.collection("posts");
-};
+}
 
-// GET /posts - 모든 게시물 조회
-router.get("/", async (req, res) => {
+router.get("/", async(req, res) => {
   try {
-    // DB에서 데이터 불러오기
-    const posts = await collection.find().toArray();
-    res.status(200).json(posts);
-    console.log("GET요청 성공");
+    const posts = await collection.find().toArray()
+    res.status(200).json(posts)
+    console.log("GET요청 성공")
   } catch (error) {
-    console.log(`GET요청 에러: ${error}`);
+    console.log(`GET요청 에러: ${error}`)
   }
 });
 
@@ -41,10 +40,12 @@ router.post("/", async (req, res) => {
   try {
     const post = req.body;
 
-    // GPT AI로 태그 생성
+    //GPT로 AI태그생성
     const tags = await generateTags(post.content);
+    console.log("🚀 ~ router.post ~ tags:", tags)
+    
 
-    // 데이터 추가
+
     const newItem = {
       ...post,
       likeCount: 0,
@@ -52,9 +53,19 @@ router.post("/", async (req, res) => {
       tags,
       createdAt: new Date(),
     };
-    const result = await collection.insertOne(newItem);
 
-    // TODO: 새 게시물 알림을 모든 클라이언트에게 전송
+    const result = await collection.insertOne(newItem);
+    //새 게시물 알림을 모든 클라이언트에게 전송
+    broadcastToClients("newPost", {
+      postID: result.insertedId,
+      userName: newItem.userName,
+      content: newItem.content.substring(0, 20) + (newItem.content.length > 20 ? "..." : ""),
+      createdAt: newItem.createdAt,
+      message: `New post from ${newItem.userName}!`
+    });
+
+
+
     res.status(201).json({ ...result, tags });
   } catch (error) {
     console.log(error);
